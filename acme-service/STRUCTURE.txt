@@ -1,0 +1,297 @@
+========================================
+BACKEND STRUCTURE - SYNC ONLY
+========================================
+
+backend/
+│
+├── app/                           # Application tasks
+│   ├── __init__.py
+│   └── tasks.py                   # Celery async tasks
+│
+├── dependencies/                  # Dependencies & utilities
+│   ├── __init__.py
+│   ├── database.py                # Synchronous database (ONLY)
+│   └── celery_app.py              # Celery configuration
+│
+├── routes/                        # API routes (organized)
+│   ├── __init__.py
+│   ├── products.py                # Product CRUD endpoints (sync)
+│   ├── upload.py                  # CSV upload endpoints (sync)
+│   └── webhooks.py                # Webhook endpoints (sync)
+│
+├── uploads/                       # CSV upload directory
+│   └── .gitkeep
+│
+├── config.py                      # Configuration (root level)
+├── main.py                        # FastAPI app (root level)
+├── models.py                      # Database models
+├── schemas.py                     # Pydantic schemas
+├── run.py                         # Application entry point
+├── requirements.txt               # Python dependencies
+├── SAMPLE_CSV_GENERATOR.py        # Generate test CSV files
+└── README.txt                     # Documentation
+
+========================================
+KEY FEATURES
+========================================
+
+✓ SYNCHRONOUS ONLY:
+  - All database operations use sync SQLAlchemy
+  - No async/await complexity
+  - Single database connection strategy
+  - Easy to understand and debug
+
+✓ SHARED DATABASE:
+  - Both routes and Celery tasks use same DB connection
+  - dependencies/database.py provides SessionLocal
+  - get_db() dependency for routes
+  - SessionLocal() directly in tasks
+
+✓ CLEAN STRUCTURE:
+  - Config at root
+  - Main at root
+  - Dependencies organized
+  - Routes separated by domain
+
+========================================
+IMPORT STRUCTURE
+========================================
+
+1. Configuration:
+   from config import settings
+
+2. Database:
+   from dependencies.database import get_db, init_db, SessionLocal
+
+3. Celery:
+   from dependencies.celery_app import celery_app
+
+4. Models:
+   from models import Product, Webhook, UploadTask
+
+5. Schemas:
+   from schemas import ProductCreate, ProductResponse
+
+6. Tasks:
+   from app.tasks import process_csv_upload, trigger_webhooks_async
+
+========================================
+HOW IT WORKS
+========================================
+
+1. FastAPI Routes (Sync):
+   - Use sync database (SQLAlchemy + psycopg2)
+   - Located in routes/ folder
+   - Import: from dependencies.database import get_db
+   - Regular def functions (no async)
+   - Example:
+     def get_products(db: Session = Depends(get_db)):
+         return db.query(Product).all()
+
+2. Celery Tasks (Sync):
+   - Use sync database (SQLAlchemy + psycopg2)
+   - Located in app/tasks.py
+   - Import: from dependencies.database import SessionLocal
+   - Example:
+     db = SessionLocal()
+     try:
+         # do work
+     finally:
+         db.close()
+
+3. Configuration:
+   - Single config.py at root
+   - Uses pydantic-settings
+   - Reads from .env file
+
+4. Models:
+   - Use Base from dependencies.database
+   - Single source of truth
+
+========================================
+RUNNING THE APPLICATION
+========================================
+
+Terminal 1 - API Server:
+  cd backend
+  python run.py
+
+Terminal 2 - Celery Worker:
+  cd backend
+  celery -A dependencies.celery_app:celery_app worker --loglevel=info
+
+========================================
+DATABASE STRATEGY
+========================================
+
+SINGLE DATABASE CONNECTION:
+
+Engine: SQLAlchemy + psycopg2
+Used by: All routes AND Celery tasks
+Benefits:
+  - Simple and straightforward
+  - No async complexity
+  - Easy to debug
+  - Works perfectly with Celery
+  - Battle-tested approach
+
+Connection Details:
+  - Pool size: 10
+  - Max overflow: 20
+  - Pool pre-ping: True (handles disconnections)
+
+========================================
+FILE PURPOSES
+========================================
+
+backend/main.py:
+  - Creates FastAPI app
+  - Registers routers
+  - CORS middleware
+  - Startup event (init_db)
+
+backend/config.py:
+  - Application settings
+  - Database URLs
+  - Environment variables
+
+backend/models.py:
+  - SQLAlchemy models
+  - Product, Webhook, UploadTask tables
+
+backend/schemas.py:
+  - Pydantic validation schemas
+  - Request/response models
+
+backend/run.py:
+  - Entry point to start the server
+  - Uses uvicorn
+
+backend/dependencies/database.py:
+  - Sync database engine
+  - get_db() dependency for routes
+  - SessionLocal for tasks
+  - init_db() function
+  - Base for models
+
+backend/dependencies/celery_app.py:
+  - Celery configuration
+  - Task settings
+
+backend/app/tasks.py:
+  - process_csv_upload task
+  - trigger_webhooks_async task
+
+backend/routes/products.py:
+  - GET/POST/PUT/DELETE /api/products
+  - Sync endpoints
+
+backend/routes/upload.py:
+  - POST /api/upload
+  - GET /api/upload/status/{id}
+  - Sync endpoints
+
+backend/routes/webhooks.py:
+  - GET/POST/PUT/DELETE /api/webhooks
+  - POST /api/webhooks/{id}/test
+  - Sync endpoints (except test which uses httpx)
+
+========================================
+ENVIRONMENT VARIABLES
+========================================
+
+Create a .env file with:
+
+postgres_db=fileimporter
+postgres_host=localhost
+postgres_port=5432
+postgres_user=postgres
+postgres_password=your_password
+
+redis_url=redis://localhost:6379/0
+celery_broker_url=redis://localhost:6379/0
+celery_result_backend=redis://localhost:6379/0
+
+environment=development
+
+========================================
+API ENDPOINTS
+========================================
+
+All endpoints are SYNCHRONOUS (no async/await)
+
+Products:
+  GET    /api/products           - List products
+  POST   /api/products           - Create product
+  GET    /api/products/{id}      - Get product
+  PUT    /api/products/{id}      - Update product
+  DELETE /api/products/{id}      - Delete product
+  DELETE /api/products           - Bulk delete
+
+Upload:
+  POST   /api/upload             - Upload CSV
+  GET    /api/upload/status/{id} - Get status
+
+Webhooks:
+  GET    /api/webhooks           - List webhooks
+  POST   /api/webhooks           - Create webhook
+  PUT    /api/webhooks/{id}      - Update webhook
+  DELETE /api/webhooks/{id}      - Delete webhook
+  POST   /api/webhooks/{id}/test - Test webhook
+
+Health:
+  GET    /                       - Welcome message
+  GET    /api/health             - Health check
+
+========================================
+BENEFITS OF SYNC APPROACH
+========================================
+
+✓ Simplicity:
+  - No async/await complexity
+  - Standard SQLAlchemy patterns
+  - Easy for beginners
+
+✓ Reliability:
+  - Well-tested approach
+  - Fewer edge cases
+  - Works great with Celery
+
+✓ Performance:
+  - Good enough for most use cases
+  - Connection pooling handles concurrency
+  - Celery handles heavy processing
+
+✓ Debugging:
+  - Standard Python debugging
+  - Clear stack traces
+  - No async context issues
+
+✓ Compatibility:
+  - Works with all SQLAlchemy features
+  - Compatible with most libraries
+  - No async driver issues
+
+========================================
+WHEN TO USE SYNC VS ASYNC
+========================================
+
+Use SYNC (current approach) when:
+  ✓ Standard CRUD operations
+  ✓ Background tasks with Celery
+  ✓ Simplicity is priority
+  ✓ Team unfamiliar with async
+
+Use ASYNC when:
+  - Need thousands of concurrent requests
+  - Heavy I/O bound operations
+  - WebSocket connections
+  - Server-sent events
+
+For this application:
+  ✓ Sync is perfect!
+  - Celery handles heavy processing
+  - Connection pooling handles concurrency
+  - Simpler and more maintainable
+
+========================================

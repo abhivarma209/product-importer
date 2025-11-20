@@ -1,0 +1,99 @@
+========================================
+QUICK START GUIDE
+========================================
+
+RUN BOTH APPLICATIONS IN 3 STEPS:
+
+========================================
+STEP 1: START BACKEND
+========================================
+
+Terminal 1 - API Server:
+-------------------------
+cd backend
+pip install -r requirements.txt
+python run.py
+
+✓ Backend API: http://localhost:8000
+✓ API Docs: http://localhost:8000/docs
+
+Terminal 2 - Celery Worker:
+---------------------------
+cd backend
+celery -A app.celery_app worker --loglevel=info
+
+✓ Required for CSV processing
+
+
+========================================
+STEP 2: CONFIGURE DATABASE
+========================================
+
+Edit backend/app/config.py (line 6):
+
+database_url: str = "postgresql://your_user:your_password@localhost:5432/your_db"
+
+Make sure PostgreSQL and Redis are running!
+
+
+========================================
+STEP 3: START FRONTEND
+========================================
+
+Terminal 3 - Next.js App:
+-------------------------
+cd frontend
+npm install
+npm run dev
+
+✓ Frontend: http://localhost:3000
+
+
+========================================
+THAT'S IT!
+========================================
+
+Open your browser: http://localhost:3000
+
+The app is ready to use!
+
+
+========================================
+TEST IT
+========================================
+
+Generate sample CSV:
+  cd backend
+  python SAMPLE_CSV_GENERATOR.py
+
+Upload the generated CSV file via the UI!
+
+
+========================================
+PORTS USED
+========================================
+
+3000 - Frontend (Next.js)
+8000 - Backend API (FastAPI)
+5432 - PostgreSQL
+6379 - Redis
+
+
+========================================
+TROUBLESHOOTING
+========================================
+
+Backend won't start?
+  → Check PostgreSQL & Redis are running
+  → Verify database credentials in backend/app/config.py
+
+Frontend can't connect?
+  → Make sure backend is running on port 8000
+  → Check frontend/.env.local has API_URL set
+
+CSV not processing?
+  → Ensure Celery worker is running (Terminal 2)
+  → Check Redis is accessible
+
+
+========================================

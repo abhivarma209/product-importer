@@ -1,0 +1,140 @@
+========================================
+PROJECT STRUCTURE - FINAL
+========================================
+
+FileImporter/
+│
+├── backend/                           # Backend Application (FastAPI)
+│   ├── app/
+│   │   ├── routes/                    # API Routes (Organized)
+│   │   │   ├── __init__.py
+│   │   │   ├── products.py            # Product CRUD endpoints
+│   │   │   ├── upload.py              # CSV upload endpoints
+│   │   │   └── webhooks.py            # Webhook endpoints
+│   │   │
+│   │   ├── __init__.py
+│   │   ├── main.py                    # FastAPI app (uses routers)
+│   │   ├── models.py                  # SQLAlchemy models
+│   │   ├── schemas.py                 # Pydantic schemas
+│   │   ├── database.py                # Database connection
+│   │   ├── config.py                  # Configuration
+│   │   ├── celery_app.py              # Celery configuration
+│   │   └── tasks.py                   # Celery async tasks
+│   │
+│   ├── uploads/                       # CSV upload directory
+│   │   └── .gitkeep
+│   │
+│   ├── requirements.txt               # Python dependencies
+│   ├── run.py                         # Backend entry point
+│   ├── SAMPLE_CSV_GENERATOR.py        # Generate test CSV
+│   ├── README.txt                     # Backend documentation
+│   └── .gitignore                     # Backend git ignore
+│
+├── frontend/                          # Frontend Application (Next.js)
+│   ├── app/                           # Next.js App Directory
+│   │   ├── page.tsx                   # Main page (tabs)
+│   │   ├── layout.tsx                 # Root layout
+│   │   └── globals.css                # Global styles
+│   │
+│   ├── components/                    # React Components
+│   │   ├── ProductsTab.tsx            # Product management UI
+│   │   ├── ProductModal.tsx           # Product create/edit form
+│   │   ├── UploadTab.tsx              # CSV upload UI
+│   │   ├── WebhooksTab.tsx            # Webhook management UI
+│   │   ├── WebhookModal.tsx           # Webhook create/edit form
+│   │   └── Toast.tsx                  # Toast notifications
+│   │
+│   ├── lib/                           # Utilities
+│   │   └── api.ts                     # API client (axios)
+│   │
+│   ├── types/                         # TypeScript Types
+│   │   └── index.ts                   # Type definitions
+│   │
+│   ├── package.json                   # Node dependencies
+│   ├── tsconfig.json                  # TypeScript config
+│   ├── next.config.js                 # Next.js config
+│   ├── env.example                    # Environment example
+│   ├── .env.local                     # Environment variables
+│   ├── .gitignore                     # Frontend git ignore
+│   └── README.txt                     # Frontend documentation
+│
+├── .gitignore                         # Root git ignore
+├── README.txt                         # Main documentation
+├── QUICKSTART.txt                     # Quick start guide
+└── PROJECT_STRUCTURE.txt              # This file
+
+========================================
+KEY FEATURES OF THIS STRUCTURE
+========================================
+
+✓ CLEAN SEPARATION
+  - Backend and frontend are completely separate
+  - Each can be run independently
+  - Each has its own dependencies and configuration
+
+✓ ORGANIZED ROUTES
+  - Backend routes are modular (routes/ folder)
+  - Each route file handles specific domain
+  - Easy to add new routes
+
+✓ PROPER STRUCTURE
+  - Backend follows FastAPI best practices
+  - Frontend follows Next.js App Router structure
+  - Clear component organization
+
+✓ SCALABLE
+  - Easy to add new features
+  - Routes can be extended
+  - Components are reusable
+
+========================================
+HOW TO RUN
+========================================
+
+Backend:
+  cd backend
+  python run.py                        (API server)
+  celery -A app.celery_app worker ...  (Worker)
+
+Frontend:
+  cd frontend
+  npm run dev                          (Next.js)
+
+========================================
+API ROUTE STRUCTURE
+========================================
+
+main.py imports routers from:
+  - app.routes.products  → /api/products
+  - app.routes.upload    → /api/upload
+  - app.routes.webhooks  → /api/webhooks
+
+Each router is a separate module with focused endpoints.
+
+========================================
+INTEGRATION
+========================================
+
+Frontend → Backend:
+  frontend/lib/api.ts makes HTTP calls to backend
+  
+Backend → Database:
+  app/models.py defines tables
+  app/database.py manages connections
+  
+Backend → Celery:
+  app/tasks.py defines async tasks
+  app/celery_app.py configures Celery
+
+========================================
+DEVELOPMENT WORKFLOW
+========================================
+
+1. Start PostgreSQL and Redis
+2. Run backend (2 terminals)
+3. Run frontend (1 terminal)
+4. Open http://localhost:3000
+5. Use the application!
+
+========================================
+
